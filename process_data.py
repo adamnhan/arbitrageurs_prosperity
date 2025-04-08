@@ -20,6 +20,7 @@ def calculate_and_save_metrics(input_csv: str, output_csv: str):
     # Ensure numeric columns are properly typed
     df['timestamp'] = df['timestamp'].astype(int)
     df['mid_price'] = df['mid_price'].astype(float)
+    df['return_pct'] = df.groupby('product')['mid_price'].pct_change() * 100
 
     # Metric 1: Spread
     df['spread'] = df['ask_price_1'] - df['bid_price_1']

@@ -1,63 +1,73 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# Load the intraday metrics
+kelp_df = pd.read_csv("datasets/kelp_intraday_metrics.csv")
+squid_df = pd.read_csv("datasets/squid_intraday_metrics.csv")
 
-def plot_market_metrics(file_path):
-    """
-    Reads processed market data from a CSV file and visualizes key trading metrics for each product separately.
-    """
-    df = pd.read_csv(file_path)
+# Set plotting style
+plt.style.use("ggplot")
 
-    # Convert timestamp and mid_price to numeric types for plotting
-    df['timestamp'] = pd.to_numeric(df['timestamp'], errors='coerce')
-    df['mid_price'] = pd.to_numeric(df['mid_price'], errors='coerce')
+# --- KELP Plots ---
+days = sorted(kelp_df["day_label"].unique())
+for day in days:
+    daily_data = kelp_df[kelp_df["day_label"] == day]
 
-    # Ensure 'product' column exists
-    if 'product' not in df.columns:
-        raise ValueError("CSV must contain a 'product' column to separate metrics by product.")
+    fig, axs = plt.subplots(4, 1, figsize=(12, 12), sharex=True)
+    fig.suptitle(f"KELP Intraday Metrics — Day {day}", fontsize=16)
 
-    # Group by product and create separate plots
-    products = df['product'].unique()
-    for product in products:
-        product_df = df[df['product'] == product].dropna(subset=['timestamp', 'mid_price'])
+    axs[0].plot(daily_data["timestamp"], daily_data["mid_price"], label="Mid Price")
+    axs[0].set_ylabel("Mid Price")
+    axs[0].legend()
 
-        fig, axs = plt.subplots(5, 1, figsize=(14, 20), sharex=True)
-        fig.suptitle(f'{product} - Market Metrics Over Time', fontsize=16)
+    axs[1].plot(daily_data["timestamp"], daily_data["bid_ask_spread"], color="orange", label="Bid-Ask Spread")
+    axs[1].set_ylabel("Spread")
+    axs[1].legend()
 
-        axs[0].plot(product_df['timestamp'], product_df['spread'], label='Spread', color='blue')
-        axs[0].set_title('Spread Over Time')
-        axs[0].set_ylabel('Spread')
-        axs[0].legend()
-        axs[0].grid()
+    axs[2].plot(daily_data["timestamp"], daily_data["rolling_volatility"], color="green", label="Rolling Volatility")
+    axs[2].set_ylabel("Volatility")
+    axs[2].legend()
 
-        axs[1].plot(product_df['timestamp'], product_df['mid_price'], label='Mid Price', color='green')
-        axs[1].set_title('Mid Price Over Time')
-        axs[1].set_ylabel('Mid Price')
-        axs[1].legend()
-        axs[1].grid()
+    axs[3].plot(daily_data["timestamp"], daily_data["momentum"], color="purple", label="Momentum")
+    axs[3].set_xlabel("Timestamp")
+    axs[3].set_ylabel("Momentum")
+    axs[3].legend()
 
-        axs[2].plot(product_df['timestamp'], product_df['volatility'], label='Volatility', color='red')
-        axs[2].set_title('Volatility Over Time')
-        axs[2].set_ylabel('Volatility')
-        axs[2].legend()
-        axs[2].grid()
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(f"plots/kelp_intraday_day_{day}.png")
+    plt.close()
 
-        axs[3].plot(product_df['timestamp'], product_df['total_volume'], label='Total Volume', color='purple')
-        axs[3].set_title('Total Volume Over Time')
-        axs[3].set_ylabel('Total Volume')
-        axs[3].legend()
-        axs[3].grid()
+# --- SQUID INK Plots ---
+squid_days = sorted(squid_df["day_label"].unique())
+for day in squid_days:
+    daily_data = squid_df[squid_df["day_label"] == day]
 
-        axs[4].plot(product_df['timestamp'], product_df['total_depth'], label='Order Book Depth', color='orange')
-        axs[4].set_title('Order Book Depth Over Time')
-        axs[4].set_xlabel('Timestamp')
-        axs[4].set_ylabel('Total Depth')
-        axs[4].legend()
-        axs[4].grid()
+    fig, axs = plt.subplots(5, 1, figsize=(12, 15), sharex=True)
+    fig.suptitle(f"SQUID INK Intraday Metrics — Day {day}", fontsize=16)
 
-        plt.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust layout for better spacing
-        plt.show()
+    axs[0].plot(daily_data["timestamp"], daily_data["mid_price"], label="Mid Price")
+    axs[0].set_ylabel("Mid Price")
+    axs[0].legend()
 
+    axs[1].plot(daily_data["timestamp"], daily_data["bid_ask_spread"], color="orange", label="Bid-Ask Spread")
+    axs[1].set_ylabel("Spread")
+    axs[1].legend()
 
-# Example usage:
-plot_market_metrics("datasets/tutorial_data_processed.csv")
+    axs[2].plot(daily_data["timestamp"], daily_data["rolling_volatility"], color="green", label="Rolling Volatility")
+    axs[2].set_ylabel("Volatility")
+    axs[2].legend()
+
+    axs[3].plot(daily_data["timestamp"], daily_data["momentum"], color="purple", label="Momentum")
+    axs[3].set_ylabel("Momentum")
+    axs[3].legend()
+
+    axs[4].plot(daily_data["timestamp"], daily_data["step_change"], color="blue", label="Step Change")
+    axs[4].set_xlabel("Timestamp")
+    axs[4].set_ylabel("Step Change")
+    axs[4].legend()
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(f"plots/squid_intraday_day_{day}.png")
+    plt.close()
+
+print("Plots saved to 'plots/' directory for each day for both KELP and SQUID INK.")
